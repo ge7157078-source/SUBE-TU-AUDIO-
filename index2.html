@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SUBE TU AUDIO!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      min-height: 100dvh;
+      overflow-x: hidden;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: clamp(16px, 3vh, 32px) clamp(14px, 4vw, 32px) clamp(24px, 4vh, 44px);
+      gap: clamp(14px, 2.5vh, 28px);
+    }
+
+    .barra-superior {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background-color: #000000;
+      transform-origin: left center;
+      transform: scaleX(0);
+      z-index: 30;
+      animation: cargar-barra 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes cargar-barra {
+      0% {
+        transform: scaleX(0);
+      }
+      70% {
+        transform: scaleX(0.85);
+      }
+      100% {
+        transform: scaleX(1);
+        opacity: 0;
+      }
+    }
+
+    .fondo-escena {
+      position: fixed;
+      inset: -16px;
+      background-image: url("fondo.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: blur(5px) brightness(0.85);
+      opacity: 0;
+      z-index: 1;
+      animation: fade-entrada 0.9s ease forwards;
+      pointer-events: none;
+    }
+
+    .zona-logo {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 1120px;
+      padding-top: clamp(4px, 1.5vh, 16px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(-10px);
+      animation: aparecer-logo 0.8s ease 0.15s forwards;
+    }
+
+    .logo-arriba {
+      display: block;
+      width: clamp(300px, 82vw, 920px);
+      max-height: clamp(130px, 34vh, 360px);
+      object-fit: contain;
+      height: auto;
+      filter:
+        drop-shadow(2px 0 3px #ffffff)
+        drop-shadow(-2px 0 3px #ffffff)
+        drop-shadow(0 2px 3px #ffffff)
+        drop-shadow(0 -2px 3px #ffffff);
+    }
+
+    .zona-drop {
+      position: relative;
+      z-index: 20;
+      width: 100%;
+      max-width: 520px;
+      flex: 1 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: clamp(12px, 2vh, 20px);
+    }
+
+    .marco-personaje {
+      width: 100%;
+      padding: clamp(14px, 2.2vw, 18px) clamp(16px, 2.8vw, 22px);
+      border-radius: clamp(14px, 2vw, 18px);
+      border: 2px solid rgba(255, 255, 255, 0.85);
+      background-color: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .marco-personaje:focus-within {
+      transform: scale(1.01);
+      background-color: rgba(255, 255, 255, 0.22);
+      border-color: #ffffff;
+    }
+
+    .etiqueta-personaje {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: clamp(20px, 3.2vw, 26px);
+      letter-spacing: 1.5px;
+      line-height: 1.1;
+      color: #ffffff;
+      text-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+    }
+
+    .input-personaje {
+      width: 100%;
+      padding: clamp(9px, 1.4vw, 12px) clamp(12px, 2vw, 16px);
+      border-radius: 12px;
+      border: 1.5px solid rgba(255, 255, 255, 0.7);
+      background-color: rgba(0, 0, 0, 0.28);
+      color: #ffffff;
+      font-size: clamp(14px, 2vw, 16px);
+      font-family: system-ui, -apple-system, sans-serif;
+      outline: none;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .input-personaje::placeholder {
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .input-personaje:focus {
+      border-color: #ffffff;
+      background-color: rgba(0, 0, 0, 0.42);
+    }
+
+    .marco-drop {
+      width: 100%;
+      min-height: clamp(160px, 26vh, 230px);
+      padding: clamp(20px, 3.5vw, 32px) clamp(16px, 3vw, 26px);
+      border-radius: clamp(14px, 2vw, 18px);
+      border: 2px dashed rgba(255, 255, 255, 0.85);
+      background-color: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .marco-drop:hover,
+    .marco-drop.arrastrando {
+      transform: scale(1.015);
+      background-color: rgba(255, 255, 255, 0.24);
+      border-style: solid;
+      border-color: #ffffff;
+    }
+
+    .marco-drop:active {
+      transform: scale(0.98);
+    }
+
+    .titulo-drop {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: clamp(26px, 4.5vw, 36px);
+      letter-spacing: 2px;
+      line-height: 1.05;
+      color: #ffffff;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+    }
+
+    .subtitulo-drop {
+      font-size: clamp(13px, 1.9vw, 15px);
+      line-height: 1.4;
+      max-width: 42ch;
+      color: rgba(255, 255, 255, 0.92);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 480px) {
+      .logo-arriba {
+        width: min(94vw, 460px);
+        max-height: 170px;
+      }
+
+      .marco-drop {
+        min-height: 150px;
+      }
+    }
+
+    @media (max-height: 620px) and (orientation: landscape) {
+      body {
+        justify-content: flex-start;
+      }
+
+      .logo-arriba {
+        max-height: 120px;
+        width: auto;
+      }
+
+      .marco-drop {
+        min-height: 120px;
+        padding: 16px;
+      }
+    }
+
+    @keyframes fade-entrada {
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes aparecer-logo {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="barra-superior" aria-hidden="true"></div>
+
+  <div class="fondo-escena" aria-hidden="true"></div>
+
+  <header class="zona-logo">
+    <img src="ONS.png" alt="Logo" class="logo-arriba">
+  </header>
+
+  <main class="zona-drop">
+    <div class="marco-personaje">
+      <label for="nombrePersonaje" class="etiqueta-personaje">Escribe el nombre del personaje</label>
+      <input
+        type="text"
+        id="nombrePersonaje"
+        class="input-personaje"
+        placeholder="Escribe el nombre del personaje"
+        autocomplete="off"
+      >
+    </div>
+
+    <div id="marcoDrop" class="marco-drop" role="button" tabindex="0" aria-label="Subir archivo de audio">
+      <p class="titulo-drop">Sube tu audio aquí</p>
+      <p id="estadoArchivo" class="subtitulo-drop">Haz clic para explorar o arrastra tu archivo — se admite todo tipo de archivo de sonido</p>
+      <input type="file" id="inputAudio" hidden>
+    </div>
+  </main>
+
+  <script>
+    const marcoDrop = document.getElementById("marcoDrop");
+    const inputAudio = document.getElementById("inputAudio");
+    const estadoArchivo = document.getElementById("estadoArchivo");
+    const nombrePersonaje = document.getElementById("nombrePersonaje");
+
+    marcoDrop.addEventListener("click", () => inputAudio.click());
+    marcoDrop.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        inputAudio.click();
+      }
+    });
+
+    inputAudio.addEventListener("change", () => {
+      if (inputAudio.files.length > 0) {
+        procesarArchivo(inputAudio.files[0]);
+      }
+    });
+
+    ["dragenter", "dragover"].forEach((evento) => {
+      marcoDrop.addEventListener(evento, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        marcoDrop.classList.add("arrastrando");
+      });
+    });
+
+    ["dragleave", "drop"].forEach((evento) => {
+      marcoDrop.addEventListener(evento, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        marcoDrop.classList.remove("arrastrando");
+      });
+    });
+
+    marcoDrop.addEventListener("drop", (e) => {
+      const archivos = e.dataTransfer.files;
+      if (archivos.length > 0) {
+        procesarArchivo(archivos[0]);
+      }
+    });
+
+    function procesarArchivo(archivo) {
+      const maxBytes = 15 * 1024 * 1024;
+      const personaje = nombrePersonaje.value.trim();
+
+      if (archivo.size > maxBytes) {
+        estadoArchivo.textContent = "Error: el archivo supera el límite de 15 MB.";
+        return;
+      }
+
+      const tamanoMB = (archivo.size / (1024 * 1024)).toFixed(2);
+      estadoArchivo.textContent = personaje
+        ? `Personaje: ${personaje} — ${archivo.name} (${tamanoMB} MB)`
+        : `Seleccionado: ${archivo.name} (${tamanoMB} MB)`;
+
+      subirAudio(archivo, personaje);
+    }
+
+    async function subirAudio(archivo, personaje) {
+      console.log("Listo para subir:", { personaje, archivo });
+    }
+  </script>
+</body>
+</html>
