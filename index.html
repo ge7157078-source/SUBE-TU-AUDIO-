@@ -239,6 +239,16 @@
       transform: scale(0.98);
     }
 
+    .mensaje-subida {
+      font-size: clamp(13px, 1.9vw, 15px);
+      line-height: 1.4;
+      text-align: center;
+      max-width: 44ch;
+      color: #ffffff;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+      overflow-wrap: anywhere;
+    }
+
     @media (max-width: 480px) {
       .logo-arriba {
         width: min(94vw, 460px);
@@ -308,6 +318,7 @@
     </div>
 
     <button type="button" id="botonSubir" class="boton-subir">Subir</button>
+    <p id="mensajeSubida" class="mensaje-subida" aria-live="polite"></p>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -321,6 +332,7 @@
     const estadoArchivo = document.getElementById("estadoArchivo");
     const nombrePersonaje = document.getElementById("nombrePersonaje");
     const botonSubir = document.getElementById("botonSubir");
+    const mensajeSubida = document.getElementById("mensajeSubida");
 
     let archivoSeleccionado = null;
 
@@ -363,7 +375,7 @@
 
     botonSubir.addEventListener("click", () => {
       if (!archivoSeleccionado) {
-        estadoArchivo.textContent = "Primero selecciona o arrastra un archivo de audio.";
+        mensajeSubida.textContent = "Primero selecciona o arrastra un archivo de audio.";
         return;
       }
       const personaje = nombrePersonaje.value.trim();
@@ -377,10 +389,12 @@
       if (archivo.size > maxBytes) {
         archivoSeleccionado = null;
         estadoArchivo.textContent = "Error: el archivo supera el límite de 15 MB.";
+        mensajeSubida.textContent = "";
         return;
       }
 
       archivoSeleccionado = archivo;
+      mensajeSubida.textContent = "";
       const tamanoMB = (archivo.size / (1024 * 1024)).toFixed(2);
       estadoArchivo.textContent = personaje
         ? `Personaje: ${personaje} — ${archivo.name} (${tamanoMB} MB)`
@@ -397,6 +411,8 @@
       const idUnico = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const storagePath = `envios/${idUnico}${ext}`;
 
+      mensajeSubida.textContent = "Subiendo audio, espera un momento...";
+
       const { error: uploadError } = await supabaseClient.storage
         .from("audios")
         .upload(storagePath, archivo, {
@@ -406,6 +422,7 @@
 
       if (uploadError) {
         estadoArchivo.textContent = `Error al subir archivo: ${uploadError.message}`;
+        mensajeSubida.textContent = "No se pudo subir el audio.";
         return;
       }
 
@@ -420,10 +437,12 @@
 
       if (dbError) {
         estadoArchivo.textContent = `Error al guardar en base de datos: ${dbError.message}`;
+        mensajeSubida.textContent = "No se pudo registrar el envío.";
         return;
       }
 
       estadoArchivo.textContent = `Subido: ${personajeFinal} — ${archivo.name}`;
+      mensajeSubida.textContent = `¡Listo! Tu audio ya se subió (${personajeFinal} — ${archivo.name}). Ya no necesitas darle más veces.`;
       archivoSeleccionado = null;
       inputAudio.value = "";
     }
