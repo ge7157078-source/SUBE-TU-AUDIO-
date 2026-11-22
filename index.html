@@ -211,6 +211,34 @@
       overflow-wrap: anywhere;
     }
 
+    .boton-subir {
+      width: 100%;
+      padding: clamp(10px, 1.6vw, 14px) 24px;
+      border-radius: clamp(14px, 2vw, 18px);
+      border: 2px solid rgba(255, 255, 255, 0.85);
+      background-color: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      font-family: "Bebas Neue", sans-serif;
+      font-size: clamp(22px, 3.6vw, 30px);
+      letter-spacing: 2px;
+      color: #ffffff;
+      text-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .boton-subir:hover {
+      transform: scale(1.015);
+      background-color: rgba(255, 255, 255, 0.24);
+      border-color: #ffffff;
+    }
+
+    .boton-subir:active {
+      transform: scale(0.98);
+    }
+
     @media (max-width: 480px) {
       .logo-arriba {
         width: min(94vw, 460px);
@@ -278,11 +306,13 @@
       <p id="estadoArchivo" class="subtitulo-drop">Haz clic para explorar o arrastra tu archivo — MAX 15MB</p>
       <input type="file" id="inputAudio" hidden>
     </div>
+
+    <button type="button" id="botonSubir" class="boton-subir">Subir</button>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const SUPABASE_URL = "https://xftxhlwrojgyjdqwwqbg.supabase.co/rest/v1/";
+    const SUPABASE_URL = "https://xftxhlwrojgyjdqwwqbg.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_f720G9kxurOAuk1y_WwFXw_Zx9owBSp";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -290,6 +320,9 @@
     const inputAudio = document.getElementById("inputAudio");
     const estadoArchivo = document.getElementById("estadoArchivo");
     const nombrePersonaje = document.getElementById("nombrePersonaje");
+    const botonSubir = document.getElementById("botonSubir");
+
+    let archivoSeleccionado = null;
 
     marcoDrop.addEventListener("click", () => inputAudio.click());
     marcoDrop.addEventListener("keydown", (e) => {
@@ -328,28 +361,41 @@
       }
     });
 
+    botonSubir.addEventListener("click", () => {
+      if (!archivoSeleccionado) {
+        estadoArchivo.textContent = "Primero selecciona o arrastra un archivo de audio.";
+        return;
+      }
+      const personaje = nombrePersonaje.value.trim();
+      subirAudio(archivoSeleccionado, personaje);
+    });
+
     function procesarArchivo(archivo) {
       const maxBytes = 15 * 1024 * 1024;
       const personaje = nombrePersonaje.value.trim();
 
       if (archivo.size > maxBytes) {
+        archivoSeleccionado = null;
         estadoArchivo.textContent = "Error: el archivo supera el límite de 15 MB.";
         return;
       }
 
+      archivoSeleccionado = archivo;
       const tamanoMB = (archivo.size / (1024 * 1024)).toFixed(2);
       estadoArchivo.textContent = personaje
         ? `Personaje: ${personaje} — ${archivo.name} (${tamanoMB} MB)`
         : `Seleccionado: ${archivo.name} (${tamanoMB} MB)`;
-
-      subirAudio(archivo, personaje);
     }
 
     async function subirAudio(archivo, personaje) {
       const personajeFinal = personaje || "Sin personaje";
       const partes = archivo.name.split(".");
-      const ext = partes.length > 1 ? "." + partes.pop().toLowerCase().replace(/[^a-z0-9]/g, "") : "";
-      const storagePath = `envios/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+      const extLimpia = partes.length > 1
+        ? partes.pop().toLowerCase().replace(/[^a-z0-9]/g, "")
+        : "";
+      const ext = extLimpia ? `.${extLimpia}` : "";
+      const idUnico = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const storagePath = `envios/${idUnico}${ext}`;
 
       const { error: uploadError } = await supabaseClient.storage
         .from("audios")
@@ -378,6 +424,7 @@
       }
 
       estadoArchivo.textContent = `Subido: ${personajeFinal} — ${archivo.name}`;
+      archivoSeleccionado = null;
       inputAudio.value = "";
     }
   </script>
